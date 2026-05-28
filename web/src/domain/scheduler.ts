@@ -17,6 +17,23 @@
 import { formatDate, parseDate, WorkingCalendar } from "./calendar.js";
 import { DependencyType, type Project, type Task, walkTasks } from "./types.js";
 
+/**
+ * Write a computed schedule back into the model: every task's `start` is set to
+ * its scheduled start, and summary durations are recomputed to span children.
+ * This keeps a subsequent `.gan` export consistent with the schedule.
+ */
+export function applySchedule(project: Project, computed: Map<string, ScheduledDates>): void {
+  const cal = new WorkingCalendar(project.calendar);
+  walkTasks(project.tasks, (task) => {
+    const dates = computed.get(task.id);
+    if (!dates) return;
+    task.start = dates.start;
+    if (task.children.length > 0) {
+      task.duration = cal.countWorkingDays(parseDate(dates.start), parseDate(dates.end));
+    }
+  });
+}
+
 export interface ScheduledDates {
   start: string;
   /** Exclusive finish anchor = start shifted by duration working days. */

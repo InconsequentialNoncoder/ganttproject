@@ -93,6 +93,17 @@ export class WorkingCalendar {
     return d;
   }
 
+  /** Number of working-day steps from `start` to `end` (the working duration). */
+  countWorkingDays(start: Date, end: Date): number {
+    let d = this.findClosestWorkingTime(start);
+    let n = 0;
+    while (d.getTime() < end.getTime()) {
+      d = addDays(d, 1);
+      if (this.isWorkingDay(d)) n++;
+    }
+    return n;
+  }
+
   /** Inverse of {@link shiftWorkingDays}: step `count` working days backward. */
   shiftWorkingDaysBack(end: Date, count: number): Date {
     let d = end;
