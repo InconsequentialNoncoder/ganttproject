@@ -8,6 +8,7 @@
     "bindings": [{ "name": "PROJECT_DO", "class_name": "ProjectDO" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ProjectDO"] }],
+  "routes": [{ "pattern": "gantt.inconsequentialnoncoder.co.uk", "custom_domain": true }],
   "d1_databases": [
     {
       "binding": "DB",
