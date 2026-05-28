@@ -9,6 +9,7 @@ export { ProjectDO };
 
 export interface Env {
   PROJECT_DO: DurableObjectNamespace<ProjectDO>;
+  ASSETS: Fetcher;
 }
 
 const CORS = {
@@ -35,6 +36,9 @@ function stubFor(env: Env, projectId: string): DurableObjectStub<ProjectDO> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    // Non-API requests are the SPA / static assets.
+    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     try {
       return await route(request, env);
