@@ -111,6 +111,20 @@ export class ProjectDO extends DurableObject {
     return this.mutate((project) => removeDependency(project, predecessorId, successorId));
   }
 
+  async rename(name: string): Promise<Outcome> {
+    return this.mutate((project) => {
+      project.name = name;
+    });
+  }
+
+  /** Erase all project data so the Durable Object can be reused/garbage-collected. */
+  async dispose(): Promise<void> {
+    this.sql.exec("DROP TABLE IF EXISTS dependency");
+    this.sql.exec("DROP TABLE IF EXISTS task");
+    this.sql.exec("DROP TABLE IF EXISTS meta");
+    createSchema(this.sql);
+  }
+
   private mutate(operation: (project: Project) => void): Outcome {
     return this.safely(() => {
       if (!hasProject(this.sql)) throw new ProjectNotFoundError();

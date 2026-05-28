@@ -8,6 +8,19 @@
     "bindings": [{ "name": "PROJECT_DO", "class_name": "ProjectDO" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ProjectDO"] }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ganttproject",
+      // Replace with the id from `wrangler d1 create ganttproject` before deploying.
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "vars": {
+    // Local-dev default only. Set a real secret for production:
+    // `wrangler secret put SESSION_SECRET`.
+    "SESSION_SECRET": "dev-insecure-session-secret"
+  },
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",

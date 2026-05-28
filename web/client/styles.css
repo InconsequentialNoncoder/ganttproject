@@ -111,3 +111,18 @@ button.active { background: var(--accent); color: #fff; border-color: var(--acce
 .deps li { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
 .link-btn { border: none; background: none; color: var(--accent); cursor: pointer; padding: 0; }
 button.danger { color: #b91c1c; border-color: #f0c0c0; margin-top: 16px; }
+
+/* Toolbar project name */
+.toolbar .project-name { font-weight: 600; margin: 0 4px; }
+
+/* Project list / home */
+.project-list { padding: 24px; overflow: auto; flex: 1; }
+.project-list-actions { display: flex; gap: 8px; margin-bottom: 18px; }
+.project-list .muted { color: #6a7280; }
+.project-list .error { color: #b91c1c; }
+table.projects { border-collapse: collapse; width: 100%; max-width: 720px; }
+table.projects th, table.projects td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+table.projects th { color: #6a7280; font-weight: 600; }
+table.projects .row-actions { display: flex; gap: 12px; }
+.link-btn { border: none; background: none; color: var(--bar); cursor: pointer; padding: 0; font: inherit; }
+.link-btn.danger { color: #b91c1c; margin-top: 0; }

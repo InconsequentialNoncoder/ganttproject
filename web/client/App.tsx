@@ -3,18 +3,19 @@ import { api, ApiError, type ProjectView } from "./lib/api.js";
 import { findTask } from "./lib/tasks.js";
 import { GanttChart } from "./components/GanttChart.js";
 import { Inspector } from "./components/Inspector.js";
+import { ProjectList } from "./components/ProjectList.js";
 import { Toolbar } from "./components/Toolbar.js";
 
 const STORAGE_KEY = "gpweb.projectId";
+type Mode = "home" | "project";
 
 export function App() {
-  const [projectId, setProjectId] = useState<string | null>(
-    () => localStorage.getItem(STORAGE_KEY),
-  );
+  const [mode, setMode] = useState<Mode>("home");
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [view, setView] = useState<ProjectView | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [linkSource, setLinkSource] = useState<string | null>(null);
-  const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
 
   const run = useCallback(async (label: string, fn: () => Promise<void>) => {
@@ -30,39 +31,43 @@ export function App() {
     }
   }, []);
 
-  // Load the last project on startup.
+  const openProject = useCallback(
+    (id: string) =>
+      run("Loading…", async () => {
+        try {
+          const next = await api.getProject(id);
+          setView(next);
+          setProjectId(id);
+          setSelectedId(null);
+          setLinkSource(null);
+          setMode("project");
+          localStorage.setItem(STORAGE_KEY, id);
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 404) {
+            localStorage.removeItem(STORAGE_KEY);
+            setMode("home");
+          } else throw err;
+        }
+      }),
+    [run],
+  );
+
+  // Auto-open the last project on first load.
   useEffect(() => {
-    if (!projectId) return;
-    run("Loading…", async () => {
-      try {
-        setView(await api.getProject(projectId));
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 404) {
-          localStorage.removeItem(STORAGE_KEY);
-          setProjectId(null);
-        } else throw err;
-      }
-    });
-  }, [projectId, run]);
+    const last = localStorage.getItem(STORAGE_KEY);
+    if (last) void openProject(last);
+  }, [openProject]);
 
-  const adopt = (created: { id: string } & ProjectView) => {
-    setProjectId(created.id);
-    localStorage.setItem(STORAGE_KEY, created.id);
-    setView({ project: created.project, schedule: created.schedule });
-    setSelectedId(null);
-    setLinkSource(null);
+  const goHome = () => {
+    setMode("home");
+    setView(null);
+    setProjectId(null);
   };
-
-  const newProject = () => run("Creating…", async () => adopt(await api.createProject("Untitled")));
-
-  const importGan = (xml: string) =>
-    run("Importing…", async () => adopt(await api.importProject(xml)));
 
   const addTask = (parentId?: string) =>
     run("Adding task…", async () => {
       if (!projectId) return;
-      const next = await api.addTask(projectId, { parentId, name: "New task", duration: 1 });
-      setView(next);
+      setView(await api.addTask(projectId, { parentId, name: "New task", duration: 1 }));
     });
 
   const updateTask = (taskId: string, patch: Record<string, unknown>) =>
@@ -85,10 +90,8 @@ export function App() {
     });
 
   const toggleExpand = (taskId: string, expand: boolean) => updateTask(taskId, { expand });
-
   const rescheduleStart = (taskId: string, start: string) => updateTask(taskId, { start });
 
-  // Linking: first click chooses the predecessor, second the successor.
   const handleLinkClick = (taskId: string) => {
     if (!linkSource) {
       setLinkSource(taskId);
@@ -113,22 +116,24 @@ export function App() {
   return (
     <div className="app">
       <Toolbar
+        mode={mode}
         hasProject={!!view}
-        projectId={projectId}
         selectedId={selectedId}
         linking={!!linkSource}
         busy={busy}
         status={status}
+        projectName={view?.project.name ?? ""}
         exportUrl={projectId ? api.exportUrl(projectId) : null}
-        onNew={newProject}
-        onImport={importGan}
+        onHome={goHome}
         onAddTask={() => addTask()}
         onAddSubtask={() => selectedId && addTask(selectedId)}
         onDelete={() => selectedId && deleteTask(selectedId)}
         onToggleLink={() => setLinkSource((s) => (s ? null : (selectedId ?? null)))}
       />
 
-      {view ? (
+      {mode === "home" || !view ? (
+        <ProjectList onOpen={openProject} />
+      ) : (
         <div className="workspace">
           <GanttChart
             view={view}
@@ -146,12 +151,6 @@ export function App() {
             onDelete={() => selected && deleteTask(selected.id)}
             onRemoveDependency={removeDependency}
           />
-        </div>
-      ) : (
-        <div className="empty">
-          <p>No project open.</p>
-          <button onClick={newProject}>Create a blank project</button>
-          <span> or import a .gan file from the toolbar.</span>
         </div>
       )}
     </div>

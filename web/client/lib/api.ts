@@ -11,6 +11,13 @@ export interface CreatedProject extends ProjectView {
   id: string;
 }
 
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  created_at: number;
+  updated_at: number;
+}
+
 async function asJson<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -29,6 +36,26 @@ export class ApiError extends Error {
 }
 
 export const api = {
+  async listProjects(): Promise<ProjectSummary[]> {
+    const data = await asJson<{ projects: ProjectSummary[] }>(await fetch("/api/projects"));
+    return data.projects;
+  },
+
+  async deleteProject(id: string): Promise<void> {
+    const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new ApiError(`Failed to delete project (${res.status})`, res.status);
+  },
+
+  async renameProject(id: string, name: string): Promise<ProjectView> {
+    return asJson(
+      await fetch(`/api/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      }),
+    );
+  },
+
   async createProject(name: string): Promise<CreatedProject> {
     return asJson(
       await fetch("/api/projects", {
