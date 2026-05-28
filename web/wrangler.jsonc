@@ -12,8 +12,7 @@
     {
       "binding": "DB",
       "database_name": "ganttproject",
-      // Replace with the id from `wrangler d1 create ganttproject` before deploying.
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "21fd62ce-8770-4404-8e48-0db0a7484cfe"
     }
   ],
   "vars": {
