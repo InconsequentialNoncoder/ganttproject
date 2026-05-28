@@ -17,8 +17,12 @@ export enum DependencyType {
 export type DependencyHardness = "Strong" | "Rubber";
 
 export interface TaskDependency {
-  /** `id` attribute = the predecessor (dependee) task id this task depends on. */
-  predecessorId: string;
+  /**
+   * `id` attribute = the successor task. The `<depend>` element is stored on
+   * the predecessor task, so the task owning this dependency runs first and
+   * `successorId` runs after it (subject to {@link type} and {@link difference}).
+   */
+  successorId: string;
   type: DependencyType;
   /** Lag/lead offset in calendar units. */
   difference: number;

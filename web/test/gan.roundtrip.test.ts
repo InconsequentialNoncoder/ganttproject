@@ -45,7 +45,7 @@ describe("parseGan extracts known values from a real document", () => {
     const draft = project.tasks[0].children[0];
     expect(draft.dependencies.length).toBe(2);
     const dep = draft.dependencies[0];
-    expect(dep.predecessorId).toBe("10");
+    expect(dep.successorId).toBe("10");
     expect(dep.type).toBe(DependencyType.FinishStart);
     expect(dep.hardness).toBe("Strong");
   });

@@ -222,7 +222,7 @@ function parseTask(node: Node): Task {
 
 function parseDependency(node: Node): TaskDependency {
   return {
-    predecessorId: attrOr(node, "id", ""),
+    successorId: attrOr(node, "id", ""),
     type: (num(node, "type", DependencyType.FinishStart) as DependencyType),
     difference: num(node, "difference"),
     hardness: (attrOr(node, "hardness", "Strong") as DependencyHardness),
@@ -426,7 +426,7 @@ function serializeTask(t: Task, lines: string[], depth: number): void {
   if (t.notes !== undefined) lines.push(`${cpad}<notes><![CDATA[${t.notes}]]></notes>`);
   for (const d of t.dependencies) {
     lines.push(
-      `${cpad}<depend${a("id", d.predecessorId)}${a("type", d.type)}` +
+      `${cpad}<depend${a("id", d.successorId)}${a("type", d.type)}` +
         `${a("difference", d.difference)}${a("hardness", d.hardness)}/>`,
     );
   }
